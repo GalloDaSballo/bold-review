@@ -1,2 +1,5 @@
 # bold-review
-Notes for Bold Peer Review
+
+Issues -> Findings
+
+PR -> Comments on each file / topic
