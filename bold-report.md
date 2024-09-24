@@ -32,47 +32,51 @@ Alex is a well known Security Researcher that has collaborated with multiple con
 
 ## Table of Contents
 
-- **High**: Bold Batch Shares Math can be rebased by combining rounding errors and `setBatchManagerAnnualInterestRate` to borrow for free
-- **High**: The flashloan protection for Zappers is insufficient - We can operate on Troves we don't own
-- **Med**: `eth_price_fallback_2` review
-- **Med**: `zappers_leverage_exchange_leftovers` review
-- **Med**: Batch Management Rounding Error can cause debt from being forgiven to a Trove and charged to the Batch
-- **Med**: Borrowing from branches can be disabled by one whale or early depositor
-- **Med**: Oracles with a Deviation Threshold above the Base Redemption Fee are subject to redemption arbitrage due to Oracle Drift
-- **Med**: Zappers and swaps can leave dust
-- **QA**: Suggested Next Steps
-- **QA**: Hypothetical Oracle Shutdown Risk
-- **QA**: Best to assert oracle decimals in constructor
-- **QA**: Unclear comment around managers
-- **QA**: Rounding in favour of users will cause slight inaccuracies over time
-- **QA**: TroveManager can make troves liquidatable by changing the batch interest rate
-- **QA**: Trove Adjustments may be griefed by sandwhich raising the average interest rate
-- **QA**: Old Comments
-- **QA**: Unbackedness is a bit of an inaccurate way to reduce risk via redemptions
-- **QA**: Unbackedness manipulation may be profitable
-- **QA**: QA - Base Rate Decay may be slower than intended - Chaduke
-- **QA**: Stability Pool claiming and compounding Yield can be used to gain a slightly higher rate of rewards
-- **QA**: Rounding Error for Batch in Trove can be used to flag a Trove as Unredeemable while having MIN_DEBT or more
-- **QA**: `weightedRecordedDebt` update logic sometimes uses relative incorrect ratios while the absolute values are correct
-- **QA**: Liquidator may prefer Redistribution
-- **QA**: Urgent Redemptions Premium can worsen the ICR when Trove Coll Value < Debt Value * .1
-- **QA**: Mathematical Reasoning around Rounding Errors and their Impacts for Troves in Batches
-- **QA**: Redemption Base Rate will grow slower than intended because `totalSupply` includes unredeemable debt
-- **QA**: Lack of premium on redeeming higher interest troves can lead to all troves having the higher interest rate and still be redeemed - Cold Start Problem
-- **QA**: Reasoning around adding a deadline and absolute opening fee
-- **QA**: Add and Remove Managers may open up to phishing
-- **QA**: One Year is 365.25 days
-- **QA**: `TroveNFT.tokenURI` `debt` and `coll` are static and will not reflect interest and redistributions
-- **QA**: Zappers would benefit by capping the amount of bold to repay to the current Trove debt amount
-- **QA**: User provided Zapper could be used to skim leftovers
-- **QA**: `DefaultPool` Typo
-- **QA**: `AddressRegistry` can benefit by having some small additional sanitization
-- **QA**: Readme Typos / Small Fixes
-- **QA**: Invariants
-- **Gas**: `AddRemoveManagers.sol`  - Can be refactored to not check for manager in happy path
+- **High**
+  - H-01 Bold Batch Shares Math can be rebased by combining rounding errors and `setBatchManagerAnnualInterestRate` to borrow for free
+  - H-02 The flashloan protection for Zappers is insufficient - We can operate on Troves we don't own
+- **Med**
+  - M-01 `eth_price_fallback_2` review
+  - M-02 `zappers_leverage_exchange_leftovers` review
+  - M-03 Batch Management Rounding Error can cause debt from being forgiven to a Trove and charged to the Batch
+  - M-04 Borrowing from branches can be disabled by one whale or early depositor
+  - M-05 Oracles with a Deviation Threshold above the Base Redemption Fee are subject to redemption arbitrage due to Oracle Drift
+  - M-06 Zappers and swaps can leave dust
+- **QA**
+  - Q-01 Suggested Next Steps
+  - Q-02 Hypothetical Oracle Shutdown Risk
+  - Q-03 Best to assert oracle decimals in constructor
+  - Q-04 Unclear comment around managers
+  - Q-05 Rounding in favour of users will cause slight inaccuracies over time
+  - Q-06 TroveManager can make troves liquidatable by changing the batch interest rate
+  - Q-07 Trove Adjustments may be griefed by sandwhich raising the average interest rate
+  - Q-08 Old Comments
+  - Q-09 Unbackedness is a bit of an inaccurate way to reduce risk via redemptions
+  - Q-10 Unbackedness manipulation may be profitable
+  - Q-11 QA - Base Rate Decay may be slower than intended - Chaduke
+  - Q-12 Stability Pool claiming and compounding Yield can be used to gain a slightly higher rate of rewards
+  - Q-13 Rounding Error for Batch in Trove can be used to flag a Trove as Unredeemable while having MIN_DEBT or more
+  - Q-14 `weightedRecordedDebt` update logic sometimes uses relative incorrect ratios while the absolute values are correct
+  - Q-15 Liquidator may prefer Redistribution
+  - Q-16 Urgent Redemptions Premium can worsen the ICR when Trove Coll Value < Debt Value * .1
+  - Q-17 Mathematical Reasoning around Rounding Errors and their Impacts for Troves in Batches
+  - Q-18 Redemption Base Rate will grow slower than intended because `totalSupply` includes unredeemable debt
+  - Q-19 Lack of premium on redeeming higher interest troves can lead to all troves having the higher interest rate and still be redeemed - Cold Start Problem
+  - Q-20 Reasoning around adding a deadline and absolute opening fee
+  - Q-21 Add and Remove Managers may open up to phishing
+  - Q-22 One Year is 365.25 days
+  - Q-23 `TroveNFT.tokenURI` `debt` and `coll` are static and will not reflect interest and redistributions
+  - Q-24 Zappers would benefit by capping the amount of bold to repay to the current Trove debt amount
+  - Q-25 User provided Zapper could be used to skim leftovers
+  - Q-26 `DefaultPool` Typo
+  - Q-27 `AddressRegistry` can benefit by having some small additional sanitization
+  - Q-28 Readme Typos / Small Fixes
+  - Q-29 Invariants
+- **Gas**
+  - G-01 `AddRemoveManagers.sol`  - Can be refactored to not check for manager in happy path
 
 
-# Bold Batch Shares Math can be rebased by combining rounding errors and `setBatchManagerAnnualInterestRate` to borrow for free
+# H-01 Bold Batch Shares Math can be rebased by combining rounding errors and `setBatchManagerAnnualInterestRate` to borrow for free
 
 ## Executive Summary
 
@@ -430,7 +434,7 @@ As you can see in #41 once we have a sufficiently high number of shares, all ope
 
 This makes rebase attacks too expensive to pull off
 
-# The flashloan protection for Zappers is insufficient - We can operate on Troves we don't own
+# H-02 The flashloan protection for Zappers is insufficient - We can operate on Troves we don't own
 
 ## Impact
 The code for the Balancer Vault Flashloan is as follows:
@@ -539,7 +543,7 @@ You could generate a transient id for the operation, and verify that the only ac
 ```
 
 
-# `eth_price_fallback_2` review
+# M-01 `eth_price_fallback_2` review
 
 ## Executive Summary
 
@@ -703,7 +707,7 @@ https://github.com/liquity/bold/blob/3ad11270a22190e77c1e8ef7742d2ebec133a317/co
 Fetch this first to optimize the failure case at no extra cost
 
 
-# `zappers_leverage_exchange_leftovers` review
+# M-02 `zappers_leverage_exchange_leftovers` review
 
 ### Med - Missing Sweeps here
 
@@ -792,7 +796,7 @@ I always recommend adding a comment anytime you use `transfer` to prevent wasted
 
 ## Gas - You can deposit 1 unit of dust token to each Zap to make operations cheaper on average
 
-# Batch Management Rounding Error can cause debt from being forgiven to a Trove and charged to the Batch
+# M-03 Batch Management Rounding Error can cause debt from being forgiven to a Trove and charged to the Batch
 
 ## Impact
 
@@ -1082,7 +1086,7 @@ I'm still researching this finding
 
 I currently would recommend adding a post-operation checks that asserts that the _latestTroveData.entireDebt matches the pre-computed debt
 
-# Borrowing from branches can be disabled by one whale or early depositor
+# M-04 Borrowing from branches can be disabled by one whale or early depositor
 
 ## Impact
 
@@ -1157,7 +1161,7 @@ I believe opening troves should be allowed during CCR, as long as they raise the
 
 Alternatively you could discuss with partners a strategy to seed BOLD with enough collateral to prevent any reasonable way to grief it, this technically will cost the partners their cost of capital
 
-# Oracles with a Deviation Threshold above the Base Redemption Fee are subject to redemption arbitrage due to Oracle Drift
+# M-05 Oracles with a Deviation Threshold above the Base Redemption Fee are subject to redemption arbitrage due to Oracle Drift
 
 ## Impact
 
@@ -1239,7 +1243,7 @@ This change would influence the rETH/ETH deeply as it would increase the likelih
 
 https://gist.github.com/GalloDaSballo/8980ba5795cc6dd5e93e59dc5845c6d2/
 
-# Zappers and swaps can leave dust
+# M-06 Zappers and swaps can leave dust
 
 ## Executive Summary
 
@@ -1345,7 +1349,7 @@ https://github.com/liquity/bold/blob/57c2f13fe78f914cab3d9736f73b4e0ffc58e022/co
 ```
 
 
-# Suggested Next Steps
+# Q-01 Suggested Next Steps
 
 ## Executive Summary
 
@@ -1398,7 +1402,7 @@ I believe that as of today the likelihood that I missed something or that some o
 
 
 
-# Hypothetical Oracle Shutdown Risk
+# Q-02 Hypothetical Oracle Shutdown Risk
 
 Given a certain deviation threshold, it may be possible to bring the system below CCR by that deviation threshold
 
@@ -1410,7 +1414,7 @@ It may be best to have SCR left for an hour before shutdown is completed
 
 I agree with preventing unsafe minting, but I don't agree with preventing healthy, high CR borrows from being performed
 
-# Best to assert oracle decimals in constructor
+# Q-03 Best to assert oracle decimals in constructor
 
 ## Impact
 
@@ -1426,7 +1430,7 @@ Chainlink price feeds tend to have either 8 or 18 decimals
 
 As to ensure that the decimals are the intended amount, you could add a simple assert in the constructor
 
-# Unclear comment around managers
+# Q-04 Unclear comment around managers
 
 ## Impact
 
@@ -1454,7 +1458,7 @@ as of now:
 
 Overall the code looks safe, the comment is confusing
 
-# Rounding in favour of users will cause slight inaccuracies over time
+# Q-05 Rounding in favour of users will cause slight inaccuracies over time
 
 ### Impact
 
@@ -1509,7 +1513,7 @@ At 100 years
 
 
 
-# TroveManager can make troves liquidatable by changing the batch interest rate
+# Q-06 TroveManager can make troves liquidatable by changing the batch interest rate
 
 ## Impact
 
@@ -1550,7 +1554,7 @@ This change cannot result in triggering the critical threshold, however it can m
 
 Document that BatchManager should be considered benign trusted actors
 
-# Trove Adjustments may be griefed by sandwhich raising the average interest rate
+# Q-07 Trove Adjustments may be griefed by sandwhich raising the average interest rate
 
 ## Impact
 
@@ -1571,7 +1575,7 @@ Due to this, it is possible for other ordinary operations to grief a Trove adjus
 
 It may be best to document this gotcha and to suggest using tight but not exact checks for the `_maxUpfrontFee`
 
-# Old Comments
+# Q-08 Old Comments
 
 https://github.com/liquity/bold/blob/3ad11270a22190e77c1e8ef7742d2ebec133a317/contracts/src/TroveManager.sol#L690-L711
 
@@ -1614,7 +1618,7 @@ uint256 internal collBalance; // deposited ether tracker
 
 ```
 
-# Unbackedness is a bit of an inaccurate way to reduce risk via redemptions
+# Q-09 Unbackedness is a bit of an inaccurate way to reduce risk via redemptions
 
 
 https://github.com/liquity/bold/blob/57c2f13fe78f914cab3d9736f73b4e0ffc58e022/contracts/src/CollateralRegistry.sol#L122-L131
@@ -1640,7 +1644,7 @@ Lower TCR branches would benefit more by getting redeemed as redemptions raise t
 
 
 
-# Unbackedness manipulation may be profitable
+# Q-10 Unbackedness manipulation may be profitable
 
 ## Impact
 
@@ -1679,7 +1683,7 @@ Anytime the Oracle Drift inaccuracy is higher than the sum of:
 
 Then manipulating the unbackedness will be profitable
 
-# QA - Base Rate Decay may be slower than intended - Chaduke
+# Q-11 QA - Base Rate Decay may be slower than intended - Chaduke
 
 ## Note
 This is an already known finding from ETHOS (Liquity Fork)
@@ -1729,7 +1733,7 @@ This finding was found in the ETHOS contest by Chaduke:
 https://github.com/code-423n4/2023-02-ethos-findings/issues/33
 
 
-# Stability Pool claiming and compounding Yield can be used to gain a slightly higher rate of rewards
+# Q-12 Stability Pool claiming and compounding Yield can be used to gain a slightly higher rate of rewards
 
 ## Impact
 
@@ -1751,7 +1755,7 @@ Meaning that claiming frequently is the preferred strategy
 
 Document this behaviour
 
-# Rounding Error for Batch in Trove can be used to flag a Trove as Unredeemable while having MIN_DEBT or more
+# Q-13 Rounding Error for Batch in Trove can be used to flag a Trove as Unredeemable while having MIN_DEBT or more
 
 ## Impact
 
@@ -1806,7 +1810,7 @@ Per other reports, the Batch accounting logic must be changed
 This specific finding doesn't really require mitigation as the update can be undone by anybody via `applyPendingDebt`
 
 
-# `weightedRecordedDebt` update logic sometimes uses relative incorrect ratios while the absolute values are correct
+# Q-14 `weightedRecordedDebt` update logic sometimes uses relative incorrect ratios while the absolute values are correct
 
 ## Executive Summary
 
@@ -1918,7 +1922,7 @@ Because accounting is done in absolute units, the code looks safe
 
 I don't believe the code requires changes, but it's worth adding comments and documenting this decision
 
-# Liquidator may prefer Redistribution
+# Q-15 Liquidator may prefer Redistribution
 
 ## Impact
 
@@ -1940,7 +1944,7 @@ Then, for profitable liquidations, redistribution may be preferred
 
 I don't believe this to be an issue, however, you should expect that in general Liquidators will opt to cause a redistribution and the changes to V2 create scenarios that make a redistribution more profitable than using the Stability Pool
 
-# Urgent Redemptions Premium can worsen the ICR when Trove Coll Value < Debt Value * .1
+# Q-16 Urgent Redemptions Premium can worsen the ICR when Trove Coll Value < Debt Value * .1
 
 ## Summary
 
@@ -2033,7 +2037,7 @@ Liquidations already carry a collateral premium to the caller and to the liquida
 
 Redemptions at this CR may allow for a bit more bad debt to be redistributed which could cause a liquidation cascade, however the difference doesn't seem particularly meaningful when compared to how high the Liquidation Premium tends to be for liquidations
 
-# Mathematical Reasoning around Rounding Errors and their Impacts for Troves in Batches
+# Q-17 Mathematical Reasoning around Rounding Errors and their Impacts for Troves in Batches
 
 ## Impact
 
@@ -2155,7 +2159,7 @@ main()
 In the >> absurd << scenario of having 1 wei against 200 BLN BOLD borrowed, with shares having a 20x Debt / Shares ratio
 The maximum loss is 10e27, meaning that up to 10e27 of interest would not be credited to this vault
 
-# Redemption Base Rate will grow slower than intended because `totalSupply` includes unredeemable debt
+# Q-18 Redemption Base Rate will grow slower than intended because `totalSupply` includes unredeemable debt
 
 ## Impact
 
@@ -2191,7 +2195,7 @@ For a similar reasoning `_getUpdatedBaseRateFromRedemption` is slightly undercha
 
 Another part of the supply that is not redeemable is the component of ` calcPendingAggInterest() + aggBatchManagementFees + calcPendingAggBatchManagementFee()` which is technically real debt, but it cannot be redeemed since the debt has yet to be assigned to the appropriate Troves
 
-# Lack of premium on redeeming higher interest troves can lead to all troves having the higher interest rate and still be redeemed - Cold Start Problem
+# Q-19 Lack of premium on redeeming higher interest troves can lead to all troves having the higher interest rate and still be redeemed - Cold Start Problem
 
 ## Impact 
 
@@ -2217,7 +2221,7 @@ As discussed with the team, it may be necessary to charge a higher max borrow ra
 
 Alternatively, redemptions should pay an additional premium to the Trove, based on the rate that is being paid by the borrower, the fundamental challenge with this is fairly pricing the rate of borrowing LUSD against the "defi risk free rate"
 
-# Reasoning around adding a deadline and absolute opening fee
+# Q-20 Reasoning around adding a deadline and absolute opening fee
 
 ## Executive Summary
 
@@ -2243,7 +2247,7 @@ This, combined with the fact that fees are specified as an absolute value open u
 
 The most salient part of this is the part tied to fees, where fees could initially (at time of tx signing) be a small part of the CR, they may end up, due to a price update, become a bigger part of the Debt for the Trove.
 
-# Add and Remove Managers may open up to phishing
+# Q-21 Add and Remove Managers may open up to phishing
 
 ## Impact
 
@@ -2281,7 +2285,7 @@ So ultimately this is a phishing risk moreso than a risk for the system
 
 This risk should be documented and end users should only purchase troves that have add and remove managers set to the address(0)
 
-# One Year is 365.25 days
+# Q-22 One Year is 365.25 days
 
 https://github.com/liquity/bold/blob/c84585881d8c6a5d11d38deee2943ba949a39962/contracts/src/Dependencies/Constants.sol#L46-L47
 
@@ -2294,7 +2298,7 @@ Can be changed to 365.25 to be more accurate with what a year is in solar terms
 
 This can also be nofixed with the caveat that technically the system is slightly overcharging interest
 
-# `TroveNFT.tokenURI` `debt` and `coll` are static and will not reflect interest and redistributions
+# Q-23 `TroveNFT.tokenURI` `debt` and `coll` are static and will not reflect interest and redistributions
 
 ## Impact
 
@@ -2331,7 +2335,7 @@ Making the data slightly off in most cases, and possibly very off in cases of a 
 
 Use `getLatestTroveData` in `tokenUri` or add this information as a notice to end users
 
-# Zappers would benefit by capping the amount of bold to repay to the current Trove debt amount
+# Q-24 Zappers would benefit by capping the amount of bold to repay to the current Trove debt amount
 
 ## Impact
 
@@ -2353,7 +2357,7 @@ Meaning the tokens will be stuck in the Zapper
 
 Cap the amount or sweep the `bold` remainder back to the `msg.sender`
 
-# User provided Zapper could be used to skim leftovers
+# Q-25 User provided Zapper could be used to skim leftovers
 
 ## Impact
 
@@ -2406,7 +2410,7 @@ Overall the architecture is not as safe as enforcing the swap from the caller
 
 Replace the caller provided `_zapper` with `msg.sender`
 
-# `DefaultPool` Typo
+# Q-26 `DefaultPool` Typo
 
 ## Impact
 
@@ -2425,7 +2429,7 @@ https://github.com/liquity/bold/blob/e9cc36dc4a53eed2336113095eea93989cbdac3a/co
     }
 ```
 
-# `AddressRegistry` can benefit by having some small additional sanitization
+# Q-27 `AddressRegistry` can benefit by having some small additional sanitization
 
 ## Impact
 
@@ -2465,7 +2469,7 @@ This is a very simple fix that will improve readability and should also improve 
 
 Add explicit checks around `CCR > MCR > SCR`
 
-# Readme Typos / Small Fixes
+# Q-28 Readme Typos / Small Fixes
 
 ### 75% as SP incentive
 
@@ -2523,7 +2527,7 @@ https://github.com/liquity/bold/blob/c84585881d8c6a5d11d38deee2943ba949a39962/RE
 
 
 
-# Invariants
+# Q-29 Invariants
 
 ## Executive Summary
 
@@ -2656,7 +2660,7 @@ Invariant tests should be run to ensure this can never happen
 
 #### Once a Trove has `getCompoundedBoldDeposit` == 0 they no longer can increase their `getDepositorYieldGain`
 
-# `AddRemoveManagers.sol`  - Can be refactored to not check for manager in happy path
+# G-01 `AddRemoveManagers.sol`  - Can be refactored to not check for manager in happy path
 
 ## Impact
 
